@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRK Lucky Points Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-6 w-full max-w-md">
+        
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 tracking-wide uppercase">
+                Lucky Points Calc
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">Get your exact Cookie Run: Kingdom lucky score instantly.</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="space-y-4">
+            <div>
+                <label for="damageInput" class="block text-sm font-semibold text-slate-300 mb-1.5">
+                    Enter Damage Score
+                </label>
+                <input 
+                    type="text" 
+                    id="damageInput" 
+                    placeholder="e.g., 445566778899" 
+                    class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-lg font-mono tracking-widest text-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all placeholder:text-slate-700 placeholder:tracking-normal"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                />
+            </div>
+
+            <!-- Display Results -->
+            <div class="bg-slate-950 border border-slate-900 rounded-xl p-4 space-y-3">
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400 font-medium">Base (Sum of Digits):</span>
+                    <span id="baseScore" class="font-bold text-slate-200">0</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-400 font-medium">Multiplier:</span>
+                    <span id="multiplierValue" class="font-bold text-slate-200">x1</span>
+                </div>
+                <hr class="border-slate-800">
+                <div class="text-center pt-1">
+                    <div class="text-xs text-slate-400 uppercase font-bold tracking-wider">Final Lucky Points</div>
+                    <div id="finalScore" class="text-3xl font-black text-emerald-400 tracking-wide mt-1">0</div>
+                </div>
+            </div>
+
+            <!-- Clear Button -->
+            <button 
+                id="clearBtn"
+                class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 active:bg-slate-800 text-slate-200 font-bold rounded-xl transition-colors text-sm"
+            >
+                Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        const damageInput = document.getElementById('damageInput');
+        const baseScoreEl = document.getElementById('baseScore');
+        const multiplierValueEl = document.getElementById('multiplierValue');
+        const finalScoreEl = document.getElementById('finalScore');
+        const clearBtn = document.getElementById('clearBtn');
+
+        function calculateLuckyPoints(inputValue) {
+            // Clean non-digits
+            const cleanStr = inputValue.replace(/\D/g, '');
+            if (!cleanStr) {
+                return { base: 0, multiplier: 1, total: 0 };
+            }
+
+            let num = BigInt(cleanStr);
+            let base = 0;
+            const seen = {};
+
+            // Calculate base digits sum and count occurrences
+            while (num > 1n) {
+                const digit = Number(num % 10n);
+                num = num / 10n;
+                base += digit;
+                seen[digit] = (seen[digit] || 0) + 1;
+            }
+
+            // Calculate multipliers from recurring pairs
+            let multiplier = 1;
+            for (const digit in seen) {
+                const count = seen[digit];
+                if (count > 1 && Number(digit) !== 0) {
+                    multiplier *= (Number(digit) * count);
+                }
+            }
+
+            return {
+                base: base,
+                multiplier: multiplier,
+                total: base * multiplier
+            };
+        }
+
+        function updateUI() {
+            const results = calculateLuckyPoints(damageInput.value);
+            
+            // Format numbers nicely with commas
+            baseScoreEl.textContent = results.base.toLocaleString();
+            multiplierValueEl.textContent = 'x' + results.multiplier.toLocaleString();
+            finalScoreEl.textContent = results.total.toLocaleString();
+        }
+
+        // Event listeners for instant, real-time typing results
+        damageInput.addEventListener('input', (e) => {
+            // Allow only numbers in input field
+            e.target.value = e.target.value.replace(/\D/g, '');
+            updateUI();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            damageInput.value = '';
+            updateUI();
+            damageInput.focus();
+        });
+    </script>
+</body>
+</html>
